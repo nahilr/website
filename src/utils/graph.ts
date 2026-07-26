@@ -1,3 +1,4 @@
+import remarkWikiLink from '@flowershow/remark-wiki-link'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
 import { visit } from 'unist-util-visit'
@@ -63,7 +64,16 @@ export async function getVaultGraphData(): Promise<GraphData> {
     backlinksMap[target].add(source)
   }
 
-  const parser = unified().use(remarkParse)
+  const parser = unified()
+    .use(remarkParse)
+    // @ts-ignore - remarkWikiLink uses `this: Processor` which conflicts with unified's Plugin type
+    .use(remarkWikiLink, {
+      format: 'shortestPossible',
+      files: getVaultIndex().files,
+      permalinks: getVaultIndex().permalinks,
+      wikiLinkClassName: 'internal',
+      newClassName: 'new'
+    })
 
   for (const entry of entries) {
     const sourceSlug = entry.slug
