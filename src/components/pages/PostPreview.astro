@@ -3,7 +3,7 @@ import { Image } from 'astro:assets'
 import { render, type CollectionEntry, type CollectionKey } from 'astro:content'
 
 import { cn } from '../../utils'
-import { Button, FormattedDate, Icon } from '../user'
+import { FormattedDate, Icon } from '../user'
 
 type NoteData = {
   title: string
@@ -27,7 +27,7 @@ const { post, note, detailed = false, withType = false, class: className } = Ast
 const isNote = !!note
 const title = isNote ? note.title : post!.data.title
 const href = isNote ? `/vault/${note.slug}` : `/vault/${(post as any).slug || post!.id}`
-const date = isNote ? note.date : (post!.data.updatedDate ?? post!.data.publishDate)
+const date = isNote ? note.date : (post!.data.publishDate ?? post!.data.updatedDate)
 const isDraft = isNote ? note.draft : post!.data.publish === false
 const data = isNote ? null : post!.data
 const remarkPluginFrontmatter = post ? (await render(post)).remarkPluginFrontmatter : null
@@ -101,6 +101,18 @@ const displayType = Array.isArray(rawType) ? rawType[0] || 'note' : rawType || '
                 <Icon name='time' class='size-4' />
                 {remarkPluginFrontmatter?.minutesRead}
               </span>
+              {/* tags */}
+              {data.tags.length > 0 && (
+                <span class='flex items-center gap-1 not-italic'>
+                  <Icon name='hashtag' class='size-4' />
+                  {data.tags.map((tag: string, i: number) => (
+                    <Fragment>
+                      <span>{tag}</span>
+                      {i < data.tags.length - 1 && <span class='mx-0.5'>/</span>}
+                    </Fragment>
+                  ))}
+                </span>
+              )}
               {/* language */}
               {data.language && (
                 <span class='flex items-center gap-1'>
@@ -109,17 +121,6 @@ const displayType = Array.isArray(rawType) ? rawType[0] || 'note' : rawType || '
                 </span>
               )}
             </div>
-            {data.tags.length > 0 && (
-              <object title='Tags' aria-label='Tags' aria-labelledby='Tags'>
-                <ul class='tag-list mt-1 flex gap-2'>
-                  {data.tags.map((tag: string) => (
-                    <li>
-                      <Button as='a' title={tag} href={`/tags/${tag}`} variant='pill' />
-                    </li>
-                  ))}
-                </ul>
-              </object>
-            )}
           </>
         )
       }
@@ -134,15 +135,11 @@ const displayType = Array.isArray(rawType) ? rawType[0] || 'note' : rawType || '
       );
     }
     .post-preview:hover {
-      & > a,
-      & .tag-list a {
+      & > a {
         background-color: var(
           --preview-highlight-bg,
           hsl(var(--muted) / var(--un-bg-opacity, 1))
         ) !important;
-      }
-      & > a,
-      & .tag-list a:hover {
         color: var(--preview-highlight-final) !important;
       }
       & > a .preview-redirect {
