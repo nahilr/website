@@ -94,20 +94,18 @@ export async function getVaultGraphData(): Promise<GraphData> {
     visit(tree, (node: any) => {
       let target: string | undefined
 
-      if (node.type === 'link' || node.type === 'image') {
+      if (node.type === 'link') {
         if (!node.url || EXTERNAL.test(node.url)) return
         target = node.url.split('#')[0].split('?')[0]
         if (!target) return
-      } else if (node.type === 'wikiLink' || node.type === 'embed') {
+      } else if (node.type === 'wikiLink') {
         const inner = String(node.value ?? '')
         target = inner.split('|')[0].split('#')[0].trim()
         if (!target) return
       } else {
         return
       }
-
-      const kind = node.type === 'image' || node.type === 'embed' ? 'media' : 'note'
-      const resolved = resolveLink(sourceSlug, target, kind)
+      const resolved = resolveLink(sourceSlug, target, 'note')
       if (resolved) addLink(sourceSlug, resolved)
     })
   }
