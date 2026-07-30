@@ -68,7 +68,7 @@ A fast, elegant personal website combining **blog** and **knowledge vault** - bu
 
 ```shell
 # Clone repository
-git clone https://github.com/nahilrasheed/website
+git clone https://github.com/nahilr/website
 cd website
 
 # Install dependencies
