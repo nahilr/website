@@ -47,17 +47,20 @@ function resolveLink(source: string, target: string, kind: 'note' | 'media'): st
 }
 
 export async function getVaultGraphData(): Promise<GraphData> {
-  if (cachedGraphData && import.meta.env.PROD) return cachedGraphData
+  if (cachedGraphData) return cachedGraphData
 
   const entries = await getEnrichedVaultCollection()
   const nodes: GraphNode[] = []
   const links: GraphLink[] = []
+  const nodeIds = new Set<string>()
 
   const backlinksMap: Record<string, Set<string>> = {}
   const linksMap: Record<string, Set<string>> = {}
 
   // Helper to init sets and add links
   const addLink = (source: string, target: string) => {
+    if (source === target) return
+    if (!nodeIds.has(source) || !nodeIds.has(target)) return
     if (!linksMap[source]) linksMap[source] = new Set()
     if (!backlinksMap[target]) backlinksMap[target] = new Set()
     linksMap[source].add(target)
@@ -78,6 +81,7 @@ export async function getVaultGraphData(): Promise<GraphData> {
   for (const entry of entries) {
     const sourceSlug = entry.slug
 
+    nodeIds.add(sourceSlug)
     nodes.push({
       id: sourceSlug,
       name: entry.data.title || sourceSlug,
@@ -86,7 +90,10 @@ export async function getVaultGraphData(): Promise<GraphData> {
         : sourceSlug.split('/')[0] || 'note') as string,
       val: 2
     })
+  }
 
+  for (const entry of entries) {
+    const sourceSlug = entry.slug
     if (!entry.body) continue
 
     const tree = parser.parse(entry.body)
@@ -105,7 +112,7 @@ export async function getVaultGraphData(): Promise<GraphData> {
       } else {
         return
       }
-      const resolved = resolveLink(sourceSlug, target, 'note')
+      const resolved = resolveLink(entry.id, target, 'note')
       if (resolved) addLink(sourceSlug, resolved)
     })
   }

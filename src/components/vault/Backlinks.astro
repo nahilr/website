@@ -12,9 +12,25 @@ const graphData = await getVaultGraphData()
 let backlinks: { title: string; url: string }[] = []
 
 if (currentSlug && graphData.backlinksMap[currentSlug]) {
-  const linkingSlugs = graphData.backlinksMap[currentSlug]
+  const currentGroup = graphData.nodes.find((n) => n.id === currentSlug)?.group
+  const nodeById = new Map(graphData.nodes.map((n) => [n.id, n]))
+
+  const linkingSlugs = graphData.backlinksMap[currentSlug].filter(
+    (slug) => slug !== currentSlug && nodeById.has(slug)
+  )
+
+  // Relevance: share the current note's group first, then by incoming link count (val)
+  linkingSlugs.sort((a, b) => {
+    const ga = nodeById.get(a)
+    const gb = nodeById.get(b)
+    const aShared = ga?.group === currentGroup ? 1 : 0
+    const bShared = gb?.group === currentGroup ? 1 : 0
+    if (aShared !== bShared) return bShared - aShared
+    return (gb?.val ?? 0) - (ga?.val ?? 0)
+  })
+
   backlinks = linkingSlugs.map((slug) => {
-    const node = graphData.nodes.find((n) => n.id === slug)
+    const node = nodeById.get(slug)
     return {
       title: node?.name || slug,
       url: `/vault/${slug}`

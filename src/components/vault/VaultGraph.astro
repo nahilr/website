@@ -143,7 +143,7 @@ if (localSlug) {
   <!-- Global Graph Overlay Modal -->
   {
     (localSlug || modalOnly) && (
-      <dialog class='vault-global-graph-modal fixed inset-0 w-screen h-[100dvh] max-h-screen m-0 p-0 z-[100] bg-background/80 backdrop-blur-md border-none shadow-none text-foreground opacity-0 pointer-events-none transition-opacity duration-300'>
+      <dialog class='vault-global-graph-modal fixed inset-0 z-[100] m-0 h-[100dvh] max-h-screen w-screen border-none bg-background p-0 text-foreground opacity-0 pointer-events-none transition-opacity duration-300'>
         <div class='w-full h-full flex flex-col p-4 md:p-8'>
           <div class='flex items-center justify-between mb-4 z-10 flex-shrink-0'>
             <h2 class='font-medium text-muted-foreground uppercase tracking-widest text-sm flex items-center gap-2'>
@@ -185,8 +185,35 @@ if (localSlug) {
               </svg>
             </button>
           </div>
-          <div class='flex-1 w-full bg-card rounded-xl border border-border/50 overflow-hidden relative shadow-2xl'>
+          <div class='relative flex-1 w-full overflow-hidden rounded-xl border border-border bg-card'>
             <div class='vault-graph w-full h-full' data-global='true' />
+            <div class='absolute top-3 right-3 z-10 flex items-center gap-1 select-none'>
+              <span class='graph-stats mr-1 text-xs text-muted-foreground/80 whitespace-nowrap' />
+              <button
+                class='size-7 rounded-md border border-border bg-card/90 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer'
+                data-graph-action='zoom-out'
+                aria-label='Zoom out'
+                title='Zoom out'
+              >
+                −
+              </button>
+              <button
+                class='size-7 rounded-md border border-border bg-card/90 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer'
+                data-graph-action='zoom-in'
+                aria-label='Zoom in'
+                title='Zoom in'
+              >
+                +
+              </button>
+              <button
+                class='size-7 rounded-md border border-border bg-card/90 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer'
+                data-graph-action='fit'
+                aria-label='Fit to view'
+                title='Fit to view'
+              >
+                ⤢
+              </button>
+            </div>
           </div>
         </div>
       </dialog>
@@ -209,45 +236,57 @@ if (localSlug) {
     }
 
     const primary = parseHsl('--primary')
+    const isGlobal = !localSlug
 
     let hoverNode: any = null
     let hoverNeighbors = new Set<string>()
+    const neighborMap = new Map<string, Set<string>>()
+
+    gData.links.forEach((link: any) => {
+      const source = link.source.id ?? link.source
+      const target = link.target.id ?? link.target
+      neighborMap.set(source, (neighborMap.get(source) ?? new Set()).add(target))
+      neighborMap.set(target, (neighborMap.get(target) ?? new Set()).add(source))
+    })
 
     // @ts-ignore
     const ForceGraphFn = (ForceGraph.default || ForceGraph) as any
     const Graph = ForceGraphFn()
+
+    const rMultiplier = isGlobal ? 3.5 : 2.5
+    const rBase = isGlobal ? 5 : 4
+    // Match the pointer-hit radius to the drawn radius so hover feels accurate.
+    Graph.nodeRelSize(rMultiplier)
 
     Graph(container)
       .graphData(gData)
       .width(wrapper.offsetWidth)
       .height(wrapper.offsetHeight)
       .nodeId('id')
-      .nodeLabel(localSlug ? () => '' : 'name')
+      .nodeLabel('name')
       .nodeVal('val')
       .onNodeHover((node: any) => {
         hoverNode = node
-        hoverNeighbors.clear()
-        if (node) {
-          gData.links.forEach((l: any) => {
-            if (l.source.id === node.id || l.target.id === node.id) {
-              hoverNeighbors.add(l.source.id)
-              hoverNeighbors.add(l.target.id)
-            }
-          })
-        }
+        hoverNeighbors = node
+          ? new Set([node.id, ...(neighborMap.get(node.id) ?? [])])
+          : new Set<string>()
       })
       .linkColor((link: any) => {
         if (hoverNode) {
-          const connected = link.source.id === hoverNode.id || link.target.id === hoverNode.id
+          const s = link.source.id ?? link.source
+          const t = link.target.id ?? link.target
+          const connected = s === hoverNode.id || t === hoverNode.id
           return connected
-            ? parseHsl('--muted-foreground', 0.6)
-            : parseHsl('--muted-foreground', 0.1)
+            ? parseHsl('--muted-foreground', 0.7)
+            : parseHsl('--muted-foreground', 0.08)
         }
         return parseHsl('--muted-foreground', 0.3)
       })
       .linkWidth((link: any) => {
         if (hoverNode) {
-          return link.source.id === hoverNode.id || link.target.id === hoverNode.id ? 1.5 : 1
+          const s = link.source.id ?? link.source
+          const t = link.target.id ?? link.target
+          return s === hoverNode.id || t === hoverNode.id ? 1.8 : 0.8
         }
         return 1
       })
@@ -260,12 +299,9 @@ if (localSlug) {
 
         let alpha = 1
         if (hoverNode && !isNeighbor && !isHovered) {
-          alpha = 0.2
+          alpha = 0.15
         }
 
-        const isGlobal = !localSlug
-        const rMultiplier = isGlobal ? 3.5 : 2.5
-        const rBase = isGlobal ? 5 : 4
         const r = Math.max(rBase, Math.sqrt(node.val) * rMultiplier)
 
         ctx.beginPath()
@@ -273,30 +309,34 @@ if (localSlug) {
 
         if (isActive) {
           ctx.fillStyle = primary
-        } else if (node.id.startsWith('tags/')) {
-          ctx.fillStyle = parseHsl('--background')
+        } else if (isHovered || isNeighbor) {
+          ctx.fillStyle = parseHsl('--primary', 0.2 * alpha)
         } else {
           ctx.fillStyle = parseHsl('--muted-foreground', 0.4 * alpha)
         }
         ctx.fill()
 
-        ctx.lineWidth = isActive ? 2 : 1
+        ctx.lineWidth = isActive || isHovered ? 2 : 1
         if (isActive) {
           ctx.strokeStyle = primary
-        } else if (node.id.startsWith('tags/')) {
-          ctx.strokeStyle = parseHsl('--primary', 0.6 * alpha)
+        } else if (isHovered || isNeighbor) {
+          ctx.strokeStyle = parseHsl('--primary', 0.7 * alpha)
         } else {
-          ctx.strokeStyle = parseHsl('--border', alpha * 0.8)
+          ctx.strokeStyle = parseHsl('--border', alpha * 0.9)
         }
         ctx.stroke()
 
-        // Clean node design (No internal emojis/icons)
-
-        const labelThreshold = isGlobal ? 0.6 : 1.2
-        const showLabel = isActive || isHovered || globalScale > labelThreshold
+        // Local graphs are note context maps, so their node names stay visible.
+        const labelThreshold = isGlobal ? 0.4 : 1.2
+        const showLabel =
+          !isGlobal ||
+          isActive ||
+          isHovered ||
+          (hoverNode && isNeighbor) ||
+          globalScale > labelThreshold
         if (showLabel) {
           const label = node.name
-          const fontSize = 11 / globalScale
+          const fontSize = 10 / globalScale
           ctx.font = `${fontSize}px "Satoshi", sans-serif`
           ctx.textAlign = 'center'
           ctx.textBaseline = 'top'
@@ -309,11 +349,16 @@ if (localSlug) {
       })
 
     // @ts-ignore
-    Graph.d3Force('charge').strength(-180).distanceMax(250)
+    Graph.d3Force('charge')
+      .strength(isGlobal ? -520 : -180)
+      .distanceMax(isGlobal ? 900 : 250)
     // @ts-ignore
-    Graph.d3Force('link').distance(40)
+    Graph.d3Force('link').distance(isGlobal ? 90 : 40)
     // @ts-ignore
-    Graph.d3Force('center').strength(0.4)
+    Graph.d3Force('center').strength(isGlobal ? 0.08 : 0.4)
+    Graph.d3VelocityDecay(isGlobal ? 0.42 : 0.4)
+      .warmupTicks(isGlobal ? 180 : 40)
+      .cooldownTicks(isGlobal ? 300 : 120)
 
     const resizeObserver = new ResizeObserver(() => {
       if (wrapper.offsetWidth > 0 && wrapper.offsetHeight > 0) {
@@ -328,7 +373,9 @@ if (localSlug) {
       () => {
         resizeObserver.disconnect()
         // @ts-ignore
-        if (Graph.pauseAnimation) Graph.pauseAnimation()
+        if (Graph._destructor) Graph._destructor()
+        // @ts-ignore
+        else if (Graph.pauseAnimation) Graph.pauseAnimation()
       },
       { once: true }
     )
@@ -368,9 +415,7 @@ if (localSlug) {
       if (btn && modal && globalGraphContainer) {
         let globalGraphInstance: any = null
 
-        btn.addEventListener('click', (e) => {
-          e.preventDefault()
-          e.stopPropagation()
+        const openModal = () => {
           // @ts-ignore
           modal.showModal()
           modal.classList.remove('opacity-0', 'pointer-events-none')
@@ -383,6 +428,17 @@ if (localSlug) {
                 const response = await fetch('/vault/graph.json')
                 const gData = await response.json()
                 globalGraphInstance = createGraph(globalGraphContainer, gData, '')
+                if (globalGraphInstance) {
+                  const statsEl = comp.querySelector('.graph-stats')
+                  if (statsEl) {
+                    statsEl.textContent = `${gData.nodes.length} notes · ${gData.links.length} links`
+                  }
+                  // Give the canvas a beat to render before fitting
+                  setTimeout(() => {
+                    // @ts-ignore
+                    globalGraphInstance.zoomToFit(400, 32)
+                  }, 120)
+                }
               } catch (err) {
                 console.error(
                   'Failed to load global graph data. Please refresh the page or check your network connection.',
@@ -390,7 +446,41 @@ if (localSlug) {
                 )
               }
             }, 10)
+          } else {
+            // Re-fit every time the modal opens
+            setTimeout(() => {
+              // @ts-ignore
+              globalGraphInstance.zoomToFit(400, 32)
+            }, 120)
           }
+        }
+
+        btn.addEventListener('click', (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          openModal()
+        })
+
+        // Zoom controls inside the modal
+        const controlBtns = comp.querySelectorAll('[data-graph-action]')
+        controlBtns.forEach((cb) => {
+          cb.addEventListener('click', () => {
+            if (!globalGraphInstance) return
+            // @ts-ignore
+            const action = cb.dataset.graphAction
+            // @ts-ignore
+            const currentZoom = globalGraphInstance.zoom()
+            if (action === 'zoom-in') {
+              // @ts-ignore
+              globalGraphInstance.zoom(Math.min(8, currentZoom * 1.4), 300)
+            } else if (action === 'zoom-out') {
+              // @ts-ignore
+              globalGraphInstance.zoom(Math.max(0.2, currentZoom / 1.4), 300)
+            } else if (action === 'fit') {
+              // @ts-ignore
+              globalGraphInstance.zoomToFit(400, 32)
+            }
+          })
         })
 
         const closeModal = () => {

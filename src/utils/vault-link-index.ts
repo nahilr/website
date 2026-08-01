@@ -20,7 +20,11 @@ export interface VaultResolution {
 export interface VaultLinkIndex {
   files: string[]
   permalinks: Record<string, string>
-  resolve(input: { source: string; target: string; kind: 'note' | 'media' | 'auto' }): VaultResolution
+  resolve(input: {
+    source: string
+    target: string
+    kind: 'note' | 'media' | 'auto'
+  }): VaultResolution
   resolveNoteReference(source: string, target: string): VaultResolution | undefined
   getAsset(sourcePath: string): VaultResolution | undefined
 }
@@ -66,18 +70,32 @@ function resolveRelative(source: string, target: string): string {
 
 function headingsFor(sourcePath: string, root: string): Map<string, string> {
   const headings = new Map<string, string>()
-  const tree = unified().use(remarkParse).parse(readFileSync(path.join(root, sourcePath), 'utf8'))
+  const tree = unified()
+    .use(remarkParse)
+    .parse(readFileSync(path.join(root, sourcePath), 'utf8'))
   const slugger = new GithubSlugger()
 
   visit(tree, 'heading', (node) => {
     const text = toString(node).trim()
-    headings.set(text.toLocaleLowerCase(), slugger.slug(text))
+    const id = slugger.slug(text)
+    headings.set(text.toLocaleLowerCase(), id)
+    headings.set(id, id)
   })
 
   return headings
 }
 
-export function createVaultLinkIndex({ contentRoot = CONTENT_ROOT }: { contentRoot?: string } = {}): VaultLinkIndex {
+function safeDecode(value: string): string {
+  try {
+    return decodeURI(value)
+  } catch {
+    return value
+  }
+}
+
+export function createVaultLinkIndex({
+  contentRoot = CONTENT_ROOT
+}: { contentRoot?: string } = {}): VaultLinkIndex {
   const sourcePaths = globSync('**/*.{md,mdx,avif,bmp,gif,jpeg,jpg,png,svg,webp}', {
     cwd: contentRoot,
     nodir: true
@@ -97,40 +115,73 @@ export function createVaultLinkIndex({ contentRoot = CONTENT_ROOT }: { contentRo
     }
   })
   const byPath = new Map(entries.map((entry) => [entry.lookupPath.toLocaleLowerCase(), entry]))
+  for (const entry of entries) {
+    if (entry.kind !== 'note') continue
+    const basename = path.posix.basename(entry.lookupPath).toLocaleLowerCase()
+    if (basename !== 'index' && basename !== 'readme') continue
+    const folderKey = path.posix.dirname(entry.lookupPath).toLocaleLowerCase()
+    if (!folderKey || folderKey === '.') continue
+    if (!byPath.has(folderKey)) byPath.set(folderKey, entry)
+  }
   const byBasename = new Map<string, Entry[]>()
   for (const entry of entries) {
     const basename = path.posix.basename(entry.lookupPath).toLocaleLowerCase()
     byBasename.set(basename, [...(byBasename.get(basename) ?? []), entry])
   }
 
-  function find(source: string, rawTarget: string, kind: 'note' | 'media' | 'auto'): Entry | undefined {
-    const target = decodeURI(rawTarget)
+  function find(
+    source: string,
+    rawTarget: string,
+    kind: 'note' | 'media' | 'auto'
+  ): Entry | undefined {
+    const target = safeDecode(rawTarget)
     const candidates = kind === 'auto' ? entries : entries.filter((entry) => entry.kind === kind)
-    const pathTarget = target.startsWith('/') || target.startsWith('./') || target.startsWith('../')
-      ? resolveRelative(source, target)
-      : normalizePath(target)
-    const lookup = (kind === 'media' ? pathTarget : pathTarget.replace(NOTE_EXTENSION, '')).toLocaleLowerCase()
+    const pathTarget = (
+      target.startsWith('/') || target.startsWith('./') || target.startsWith('../')
+        ? resolveRelative(source, target)
+        : normalizePath(target)
+    ).replace(/\/+$/, '')
+    const lookup = (
+      kind === 'media' ? pathTarget : pathTarget.replace(NOTE_EXTENSION, '')
+    ).toLocaleLowerCase()
     const exact = byPath.get(lookup)
     if (exact && candidates.includes(exact)) return exact
     if (pathTarget.includes('/')) return undefined
     const matches = (byBasename.get(lookup) ?? []).filter((entry) => candidates.includes(entry))
     if (matches.length > 1) {
-      throw new Error(`Ambiguous vault link "${rawTarget}": ${matches.map((entry) => entry.sourcePath).join(', ')}`)
+      throw new Error(
+        `Ambiguous vault link "${rawTarget}": ${matches.map((entry) => entry.sourcePath).join(', ')}`
+      )
     }
     return matches[0]
   }
 
-  function resolve(input: { source: string; target: string; kind: 'note' | 'media' | 'auto' }): VaultResolution {
-    const [target, fragment] = input.target.split('#', 2)
+  function resolve(input: {
+    source: string
+    target: string
+    kind: 'note' | 'media' | 'auto'
+  }): VaultResolution {
+    const [pathAndQuery, fragment] = input.target.split('#', 2)
+    const [target, query] = pathAndQuery.split('?', 2)
     const entry = find(normalizePath(input.source), target, input.kind)
     if (!entry) throw new Error(`Unresolved vault link "${input.target}" from ${input.source}`)
+    const url = entry.url + (query ? `?${query}` : '')
     if (fragment) {
-      if (entry.kind !== 'note') throw new Error(`Media links cannot target a heading: ${input.target}`)
-      const headingId = entry.headings.get(decodeURI(fragment).trim().toLocaleLowerCase())
+      if (entry.kind !== 'note')
+        throw new Error(`Media links cannot target a heading: ${input.target}`)
+      const decoded = safeDecode(fragment).trim()
+      const headingId =
+        entry.headings.get(decoded.toLocaleLowerCase()) ||
+        entry.headings.get(new GithubSlugger().slug(decoded))
       if (!headingId) throw new Error(`Unresolved heading "${fragment}" in ${entry.sourcePath}`)
-      return { sourcePath: entry.sourcePath, kind: entry.kind, url: `${entry.url}#${headingId}`, headingId }
+      return {
+        sourcePath: entry.sourcePath,
+        kind: entry.kind,
+        url: `${url}#${headingId}`,
+        headingId
+      }
     }
-    return { sourcePath: entry.sourcePath, kind: entry.kind, url: entry.url }
+    return { sourcePath: entry.sourcePath, kind: entry.kind, url }
   }
 
   return {
@@ -144,6 +195,7 @@ export function createVaultLinkIndex({ contentRoot = CONTENT_ROOT }: { contentRo
         return undefined
       }
     },
-    getAsset: (sourcePath) => entries.find((entry) => entry.kind === 'media' && entry.sourcePath === sourcePath)
+    getAsset: (sourcePath) =>
+      entries.find((entry) => entry.kind === 'media' && entry.sourcePath === sourcePath)
   }
 }
