@@ -10,9 +10,10 @@ back: '/terms'
 
 By accessing and using this website, you accept and agree to be bound by the terms and provision of this agreement.
 
-## 2. Intellectual Property Rights
-
-All content published and made available on this site is the property of the site owner. This includes, but is not limited to images, text, logos, documents, downloadable files and anything that contributes to the composition of this site.
+## 2. Intellectual Property and Licensing
+- Original content: The articles, notes, and original writing on this site are the property of the site owner and are licensed under the [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license. You are free to share and adapt them with attribution, subject to the terms of that license.
+- Source code: The site's source code is licensed under Apache 2.0 (LICENSE).
+- Third-party content: Some pages may include brief excerpts or references from external sources. Those materials remain the property of their respective owners and are not covered by the site’s CC BY 4.0 licensing statement.
 
 ## 3. Educational Content Disclaimer
 
