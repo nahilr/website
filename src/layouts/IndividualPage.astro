@@ -37,7 +37,11 @@ const socialImage = heroImage?.src ?? config.socialCard
 
     <article class='min-w-0 grow' data-pagefind-body>
       <div id='content-header' class='animate'>
-        <h1 data-pagefind-meta="title" data-pagefind-weight="10" class='text-2xl font-medium sm:mb-2 sm:text-3xl'>
+        <h1
+          data-pagefind-meta='title'
+          data-pagefind-weight='10'
+          class='text-2xl font-medium sm:mb-2 sm:text-3xl'
+        >
           {title}
         </h1>
         <div class='mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs leading-6 text-muted-foreground'>
@@ -53,7 +57,10 @@ const socialImage = heroImage?.src ?? config.socialCard
           {
             // Description
             description && (
-              <blockquote data-pagefind-meta="description" class='text-sm italic text-muted-foreground'>
+              <blockquote
+                data-pagefind-meta='description'
+                class='text-sm italic text-muted-foreground'
+              >
                 <q>{description}</q>
               </blockquote>
             )

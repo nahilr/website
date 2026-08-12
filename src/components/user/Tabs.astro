@@ -82,20 +82,25 @@ if (isSynced) {
     panels && (
       <div class='tablist-wrapper not-content'>
         <ul role='tablist' class='my-0 not-prose'>
-          {panels.map(({ label, panelId, tabId }: { label: string; panelId: string; tabId: string }, idx: number) => (
-            <li role='presentation' class='tab'>
-              <a
-                role='tab'
-                draggable='false'
-                href={'#' + panelId}
-                id={tabId}
-                aria-selected={idx === 0 ? 'true' : 'false'}
-                tabindex={idx !== 0 ? -1 : 0}
-              >
-                {label}
-              </a>
-            </li>
-          ))}
+          {panels.map(
+            (
+              { label, panelId, tabId }: { label: string; panelId: string; tabId: string },
+              idx: number
+            ) => (
+              <li role='presentation' class='tab'>
+                <a
+                  role='tab'
+                  draggable='false'
+                  href={'#' + panelId}
+                  id={tabId}
+                  aria-selected={idx === 0 ? 'true' : 'false'}
+                  tabindex={idx !== 0 ? -1 : 0}
+                >
+                  {label}
+                </a>
+              </li>
+            )
+          )}
         </ul>
       </div>
     )

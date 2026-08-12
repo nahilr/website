@@ -1,8 +1,8 @@
 ---
+import { Icon } from '@/components/user'
+import { cn } from '@/utils/class-merge'
 import { getVaultTree, normalizeVaultSlug } from '@/utils/vault'
 import type { VaultNode } from '@/utils/vault'
-import { cn } from '@/utils/class-merge'
-import { Icon } from '@/components/user'
 
 interface Props {
   folder: string
@@ -31,81 +31,87 @@ const children = node?.children ?? []
 const hasFolderIcon = (n: VaultNode) => n.children.length > 0
 ---
 
-{!node && (
-  <p class='not-prose text-muted-foreground italic'>
-    Folder &quot;{folder}&quot; not found in vault.
-  </p>
-)}
+{
+  !node && (
+    <p class='not-prose text-muted-foreground italic'>
+      Folder &quot;{folder}&quot; not found in vault.
+    </p>
+  )
+}
 
-{node && children.length === 0 && (
-  <p class='not-prose text-muted-foreground italic'>No notes in this folder.</p>
-)}
+{
+  node && children.length === 0 && (
+    <p class='not-prose text-muted-foreground italic'>No notes in this folder.</p>
+  )
+}
 
-{node && children.length > 0 && (
-  <div   class={cn('not-prose grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start', className)}>
-    {children.map((child) =>
-      hasFolderIcon(child) ? (
-        <details class='vault-folder group relative border rounded-xl bg-card/60 text-card-foreground shadow-sm transition-all duration-200 hover:bg-card/80 hover:z-30 open:z-50 open:bg-card open:shadow-2xl'>
-          <summary class='flex items-center gap-2 p-4 cursor-pointer list-none transition-colors select-none'>
-            <Icon
-              name='chevron-right'
-              class='size-4.5 shrink-0 transition-transform duration-200 ease-out group-open:rotate-90 text-muted-foreground'
-            />
-            {canLink(child) ? (
-              <a
-                href={`/vault/${child.slug}`}
-                class='font-semibold text-lg decoration-dotted underline underline-offset-4 hover:decoration-solid hover:text-primary break-words'
-              >
-                {child.title}
-                {child.entry?.data.publish === false && (
-                  <span class='text-red-500 text-sm ml-1'>(Unpublished)</span>
-                )}
-              </a>
-            ) : (
-              <span class='font-semibold text-lg flex-1 break-words'>{child.title}</span>
-            )}
-          </summary>
-          <div class='border-t border-border px-4 pb-4 pt-2'>
-            <ul class='space-y-0.5'>
-              {child.children.map((grandchild) => (
-                <li>
-                  {grandchild.slug && grandchild.showLink !== false ? (
-                    <a
-                      href={`/vault/${grandchild.slug}`}
-                      class='block py-0.5 text-sm text-muted-foreground hover:text-foreground transition-colors'
-                    >
-                      {grandchild.title}
-                      {grandchild.entry?.data.publish === false && (
-                        <span class='text-red-500 text-xs ml-1'>(Unpublished)</span>
-                      )}
-                    </a>
-                  ) : (
-                    <span class='block py-0.5 text-sm text-muted-foreground'>
-                      {grandchild.title}
-                    </span>
+{
+  node && children.length > 0 && (
+    <div class={cn('not-prose grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start', className)}>
+      {children.map((child) =>
+        hasFolderIcon(child) ? (
+          <details class='vault-folder group relative border rounded-xl bg-card/60 text-card-foreground shadow-sm transition-all duration-200 hover:bg-card/80 hover:z-30 open:z-50 open:bg-card open:shadow-2xl'>
+            <summary class='flex items-center gap-2 p-4 cursor-pointer list-none transition-colors select-none'>
+              <Icon
+                name='chevron-right'
+                class='size-4.5 shrink-0 transition-transform duration-200 ease-out group-open:rotate-90 text-muted-foreground'
+              />
+              {canLink(child) ? (
+                <a
+                  href={`/vault/${child.slug}`}
+                  class='font-semibold text-lg decoration-dotted underline underline-offset-4 hover:decoration-solid hover:text-primary break-words'
+                >
+                  {child.title}
+                  {child.entry?.data.publish === false && (
+                    <span class='text-red-500 text-sm ml-1'>(Unpublished)</span>
                   )}
-                </li>
-              ))}
-            </ul>
+                </a>
+              ) : (
+                <span class='font-semibold text-lg flex-1 break-words'>{child.title}</span>
+              )}
+            </summary>
+            <div class='border-t border-border px-4 pb-4 pt-2'>
+              <ul class='space-y-0.5'>
+                {child.children.map((grandchild) => (
+                  <li>
+                    {grandchild.slug && grandchild.showLink !== false ? (
+                      <a
+                        href={`/vault/${grandchild.slug}`}
+                        class='block py-0.5 text-sm text-muted-foreground hover:text-foreground transition-colors'
+                      >
+                        {grandchild.title}
+                        {grandchild.entry?.data.publish === false && (
+                          <span class='text-red-500 text-xs ml-1'>(Unpublished)</span>
+                        )}
+                      </a>
+                    ) : (
+                      <span class='block py-0.5 text-sm text-muted-foreground'>
+                        {grandchild.title}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
+        ) : canLink(child) ? (
+          <a
+            href={`/vault/${child.slug}`}
+            class='block p-4 relative border rounded-xl bg-card/60 text-card-foreground shadow-sm transition-all duration-300 hover:bg-card/80 hover:z-30'
+          >
+            <span class='font-semibold text-lg pl-6 block break-words'>
+              {child.title}
+              {child.entry?.data.publish === false && (
+                <span class='text-red-500 text-sm ml-1'>(Unpublished)</span>
+              )}
+            </span>
+          </a>
+        ) : (
+          <div class='block p-4 relative border rounded-xl bg-card/60 text-card-foreground shadow-sm'>
+            <span class='font-semibold text-lg pl-6 block break-words'>{child.title}</span>
           </div>
-        </details>
-      ) : canLink(child) ? (
-        <a
-          href={`/vault/${child.slug}`}
-          class='block p-4 relative border rounded-xl bg-card/60 text-card-foreground shadow-sm transition-all duration-300 hover:bg-card/80 hover:z-30'
-        >
-          <span class='font-semibold text-lg pl-6 block break-words'>
-            {child.title}
-            {child.entry?.data.publish === false && (
-              <span class='text-red-500 text-sm ml-1'>(Unpublished)</span>
-            )}
-          </span>
-        </a>
-      ) : (
-        <div class='block p-4 relative border rounded-xl bg-card/60 text-card-foreground shadow-sm'>
-          <span class='font-semibold text-lg pl-6 block break-words'>{child.title}</span>
-        </div>
-      )
-    )}
-  </div>
-)}
+        )
+      )}
+    </div>
+  )
+}

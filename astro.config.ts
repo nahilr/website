@@ -13,9 +13,8 @@ import UnoCSS from 'unocss/astro'
 import rehypeAutolinkHeadings from './src/plugins/rehype-auto-link-headings.ts'
 import rehypeExternalLinks from './src/plugins/rehype-external-links.ts'
 import rehypeTable from './src/plugins/rehype-table.ts'
-import { remarkResolveVaultLinks } from './src/plugins/remark-resolve-vault-links.ts'
 import { remarkAddZoomable, remarkReadingTime } from './src/plugins/remark-plugins.ts'
-import { createVaultLinkIndex } from './src/utils/vault-link-index.ts'
+import { remarkResolveVaultLinks } from './src/plugins/remark-resolve-vault-links.ts'
 // Shiki
 import {
   addCollapse,
@@ -30,6 +29,7 @@ import {
   transformerRemoveNotationEscape
 } from './src/plugins/shiki-official/transformers.ts'
 import config from './src/site.config.ts'
+import { createVaultLinkIndex } from './src/utils/vault-link-index.ts'
 
 const vaultLinkIndex = createVaultLinkIndex()
 const vaultFiles = vaultLinkIndex.files

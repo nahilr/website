@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import type { APIRoute, GetStaticPaths } from 'astro'
+
 import { createVaultLinkIndex } from '@/utils/vault-link-index'
 
 const index = createVaultLinkIndex()
@@ -17,9 +18,7 @@ const MIME_TYPES: Record<string, string> = {
 }
 
 export const getStaticPaths: GetStaticPaths = () =>
-  index.files
-    .filter((file) => index.getAsset(file))
-    .map((file) => ({ params: { path: file } }))
+  index.files.filter((file) => index.getAsset(file)).map((file) => ({ params: { path: file } }))
 
 export const GET: APIRoute = ({ params }) => {
   const sourcePath = params.path?.split('/').map(decodeURIComponent).join('/') ?? ''

@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { getCollection } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
+
 import { normalizeVaultSlug } from '@/utils/vault-link-index'
 
 export type VaultEntry = CollectionEntry<'vault'>
