@@ -3,6 +3,7 @@ import PageLayout from '@/layouts/CommonPage.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
 
 const headings = [
+  { depth: 2, slug: 'git-activity', text: 'Git Activity' },
   { depth: 2, slug: 'projects', text: 'Personal Projects' },
   { depth: 2, slug: 'works', text: 'Works' },
   { depth: 2, slug: 'ctf-participations', text: 'CTF Participations' }
@@ -10,20 +11,11 @@ const headings = [
 ---
 
 <PageLayout title='Projects' {headings}>
-  <p>Github Activities:</p>
+  <h2 id='git-activity'>Git Activity</h2>
   <p>
     <img
-      src='https://ghchart.rshah.org/659eb9/nahilrasheed'
-      alt='github activities'
-      loading='lazy'
-    />
-  </p>
-
-  <p>TryHackMe Badge:</p>
-  <p>
-    <img
-      src='https://tryhackme-badges.s3.amazonaws.com/0xnhl.png?update=1'
-      alt='tryhackme badge'
+      src='https://raw.githubusercontent.com/nahilr/nahilr/main/profile-3d-contrib/profile-night-green.svg'
+      alt='GitHub contribution profile'
       loading='lazy'
     />
   </p>

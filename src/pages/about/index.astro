@@ -9,9 +9,10 @@ import { Icon, Spoiler, Timeline } from '@/components/user'
 // const frontend = ['TypeScript', 'React', 'Vite', 'Astro','Tailwind CSS']
 // const backend = ['Node.js', 'Express', 'MongoDB', 'Cloudflare', 'Netlify']
 const headings = [
-  { depth: 2, slug: 'education', text: 'Education' },
-  { depth: 2, slug: 'certifications', text: 'Certifications' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
+  { depth: 2, slug: 'cybersecurity-platforms', text: 'Cybersecurity Platforms' },
+  { depth: 2, slug: 'certifications', text: 'Certifications' },
+  { depth: 2, slug: 'education', text: 'Education' },
   { depth: 2, slug: 'about-blog', text: 'About Blog' }
 ]
 ---
@@ -20,7 +21,7 @@ const headings = [
   <p>Student / Developer / Cybersecurity Enthusiast</p>
   <p>Hi, I'm Nahil Rasheed.</p>
   <p>
-    I'm a third-year undergraduate student at IIIT Kottayam, pursuing a B.Tech in Computer Science
+    I'm a final-year undergraduate student at IIIT Kottayam, pursuing a B.Tech in Computer Science
     and Engineering with a specialization in Cybersecurity. I'm deeply interested in cybersecurity,
     technology, and computer science, and I spend a lot of my time learning, experimenting, and
     documenting my journey. I enjoy working on projects that involve security testing, programming,
@@ -34,36 +35,6 @@ const headings = [
   <p>
     Reach out to me via email at <a href='mailto:hi@nahil.xyz'>hi@nahil.xyz</a>.
   </p>
-
-  <h2 id='education'>Education</h2>
-  <ImageCard
-    as='a'
-    heading='IIIT Kottayam'
-    location='Kottayam, India'
-    subheading='B.Tech in Computer Science and Engineering with Specialization in Cybersecurity'
-    date='August 2023 - Present'
-    href='https://iiitkottayam.ac.in/'
-    imagePath='/src/assets/about/iiitk.png'
-  />
-
-  <h2 id='certifications'>Certifications</h2>
-  <ImageCard
-    as='a'
-    heading='Google Cybersecurity Professional Certificate'
-    subheading='Google'
-    date='Dec 2025'
-    href='https://www.coursera.org/account/accomplishments/specialization/48W6CHQVROD8'
-    imagePath='/src/assets/about/gcpc.png'
-  />
-  <br />
-  <ImageCard
-    as='a'
-    heading='Cisco Ethical Hacker'
-    subheading='Cisco'
-    date='July 2025'
-    href='https://www.credly.com/badges/f806a313-6c62-4810-b196-eecc93dcb6a8/'
-    imagePath='/src/assets/about/cisco-eh.png'
-  />
 
   {/* social-networks */}
   <h2 id='social-networks'>Social Networks</h2>
@@ -104,6 +75,52 @@ const headings = [
       </div>
     </a>
   </div>
+
+  {/* cybersecurity-platforms */}
+  <h2 id='cybersecurity-platforms'>Cybersecurity Platforms</h2>
+  <a
+    href='https://tryhackme.com/p/0xnhl'
+    target='_blank'
+    rel='noopener noreferrer'
+    class='inline-block rounded-2xl transition-transform hover:-translate-y-0.5'
+  >
+    <img
+      src='https://raw.githubusercontent.com/nahilr/nahilr/main/assets/thm_badge.png'
+      alt='TryHackMe badge'
+      loading='lazy'
+      class='rounded-2xl'
+    />
+  </a>
+
+  <h2 id='certifications'>Certifications</h2>
+  <ImageCard
+    as='a'
+    heading='Google Cybersecurity Professional Certificate'
+    subheading='Google'
+    date='Dec 2025'
+    href='https://www.coursera.org/account/accomplishments/specialization/48W6CHQVROD8'
+    imagePath='/src/assets/about/gcpc.png'
+  />
+  <br />
+  <ImageCard
+    as='a'
+    heading='Cisco Ethical Hacker'
+    subheading='Cisco'
+    date='July 2025'
+    href='https://www.credly.com/badges/f806a313-6c62-4810-b196-eecc93dcb6a8/'
+    imagePath='/src/assets/about/cisco-eh.png'
+  />
+
+  <h2 id='education'>Education</h2>
+  <ImageCard
+    as='a'
+    heading='IIIT Kottayam'
+    location='Kottayam, India'
+    subheading='B.Tech in Computer Science and Engineering with Specialization in Cybersecurity'
+    date='August 2023 - Present'
+    href='https://iiitkottayam.ac.in/'
+    imagePath='/src/assets/about/iiitk.png'
+  />
 
   {/* about-blog */}
   <h2 id='about-blog'>About this website</h2>

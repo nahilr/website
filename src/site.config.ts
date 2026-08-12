@@ -58,7 +58,7 @@ export const theme: ThemeUserConfig = {
       { title: 'Vault', link: '/vault' },
       { title: 'Archive', link: '/archives' },
       { title: 'Projects', link: '/projects' },
-      { title: 'whoami', link: '/about' }
+      { title: 'About', link: '/about' }
     ]
   },
 
